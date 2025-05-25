@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>hw-04 — Адаптивна верстка з API</title>
+  <link rel="stylesheet" href="./style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/gsap@3/dist/gsap.min.js"></script>
+  <script src="https://unpkg.com/gsap@3/dist/ScrollTrigger.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+  <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+</head>
+<body>
+  <header class="section">
+    <div class="container header-wrapper">
+      <a href="index.html" class="logo">hw-04</a>
+      <button class="mobile-toggle" aria-label="Відкрити меню">&#9776;</button>
+      <nav class="main-nav">
+        <a href="https://github.com/ваш_логін/hw-04" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container image-section">
+        <h2 class="animated-title">Приклад зображення</h2>
+        <p>Опис картинки нижче:</p>
+        <img src="./8ce57ebf66cac83b8db46937e0d8fdb9.jpg" alt="Приклад зображення: красива природа" width="600" height="400" />
+        <p>Це короткий опис картинки на українській мові.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="container">Слайдер</h2>
+      <div class="swiper">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide">Слайд 1</div>
+          <div class="swiper-slide">Слайд 2</div>
+          <div class="swiper-slide">Слайд 3</div>
+          <div class="swiper-slide">Слайд 1</div>
+          <div class="swiper-slide">Слайд 2</div>
+          <div class="swiper-slide">Слайд 3</div>
+        </div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Форма</h2>
+        <form id="dataForm">
+          <input type="text" name="name" placeholder="Ім’я">
+          <input type="email" name="email" placeholder="Email">
+          <button type="submit">Надіслати</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Модальне вікно</h2>
+        <button id="openModal">Відкрити модальне вікно</button>
+        <div id="modal" class="modal">
+          <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <p>Це модальне вікно з додатковою інформацією.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Розгортання тексту</h2>
+        <p id="textBlock" class="collapsed">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.
+        </p>
+        <button id="toggleTextBtn">Читати більше</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Завдання 1 — Завантаження користувачів з API</h2>
+        <label for="userLimit">Кількість користувачів на сторінку:</label>
+        <input type="number" id="userLimit" value="5" min="1" required />
+        <button id="fetchUsersBtn">Fetch Users</button>
+        <ul id="userList"></ul>
+        <p id="noMoreData" style="display: none; color: red;">Більше немає даних для завантаження.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>Завдання 2 — Todo список</h2>
+        <form id="todoForm">
+          <input type="text" id="todoInput" placeholder="Нова задача" required />
+          <button type="submit">Додати</button>
+        </form>
+    
+        <div class="todo-filters">
+          <button data-filter="all">Усі</button>
+          <button data-filter="active">Активні</button>
+          <button data-filter="completed">Завершені</button>
+        </div>
+    
+        <ul id="todoList"></ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="section">
+    <div class="container">
+      <p>© 2025 hw-04. Всі права захищені.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const todos = [];
+      let currentFilter = 'all';
+  
+      const todoForm = document.getElementById('todoForm');
+      const todoInput = document.getElementById('todoInput');
+      const todoList = document.getElementById('todoList');
+      const filterButtons = document.querySelectorAll('.todo-filters button');
+  
+      todoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = todoInput.value.trim();
+        if (!text) return;
+        const newTodo = {
+          id: Date.now(),
+          text,
+          completed: false
+        };
+        todos.push(newTodo);
+        todoInput.value = '';
+        renderTodos();
+      });
+  
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentFilter = btn.dataset.filter;
+          renderTodos();
+        });
+      });
+  
+      function renderTodos() {
+        todoList.innerHTML = '';
+        let filtered = todos;
+        if (currentFilter === 'active') filtered = todos.filter(t => !t.completed);
+        if (currentFilter === 'completed') filtered = todos.filter(t => t.completed);
+  
+        if (filtered.length === 0) {
+          todoList.innerHTML = '<li>Немає задач</li>';
+          return;
+        }
+  
+        filtered.forEach(todo => {
+          const li = document.createElement('li');
+          li.textContent = todo.text;
+          li.style.textDecoration = todo.completed ? 'line-through' : 'none';
+          li.style.cursor = 'pointer';
+          li.addEventListener('click', () => {
+            todo.completed = !todo.completed;
+            renderTodos();
+          });
+          todoList.appendChild(li);
+        });
+      }
+    });
+  </script>
+  
+
+  <script>
+    let currentPage = 1;
+    document.addEventListener("DOMContentLoaded", () => {
+      gsap.registerPlugin(ScrollTrigger);
+      gsap.from(".animated-title", {
+        scrollTrigger: {
+          trigger: ".animated-title",
+          start: "top 80%",
+        },
+        opacity: 0,
+        y: 50,
+        duration: 1,
+        ease: "power3.out"
+      });
+
+      new Swiper(".swiper", {
+        loop: true,
+        slidesPerView: 1,
+        spaceBetween: 10,
+        pagination: {
+          el: ".swiper-pagination",
+          clickable: true,
+        },
+        navigation: {
+          nextEl: ".swiper-button-next",
+          prevEl: ".swiper-button-prev",
+        },
+        breakpoints: {
+          768: {
+            slidesPerView: 2,
+            spaceBetween: 20,
+          },
+          1024: {
+            slidesPerView: 3,
+            spaceBetween: 30,
+          },
+        }
+      });
+
+      const form = document.getElementById("dataForm");
+      const submittedData = [];
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const data = {};
+        let allFilled = true;
+        [...form.elements].forEach(input => {
+          if (input.name && input.type !== "submit") {
+            if (!input.value.trim()) allFilled = false;
+            data[input.name] = input.value.trim();
+          }
+        });
+        if (!allFilled) return alert("Будь ласка, заповніть усі поля.");
+        submittedData.push(data);
+        console.log(submittedData);
+        localStorage.setItem("formData", JSON.stringify(submittedData));
+        form.reset();
+      });
+
+      const modal = document.getElementById("modal");
+      const openModalBtn = document.getElementById("openModal");
+      const closeModalBtn = modal.querySelector(".close-button");
+      openModalBtn.addEventListener("click", () => modal.style.display = "flex");
+      closeModalBtn.addEventListener("click", () => modal.style.display = "none");
+      window.addEventListener("click", e => { if (e.target === modal) modal.style.display = "none"; });
+      window.addEventListener("keydown", e => { if (e.key === "Escape") modal.style.display = "none"; });
+
+      const toggleTextBtn = document.getElementById("toggleTextBtn");
+      const textBlock = document.getElementById("textBlock");
+      toggleTextBtn.addEventListener("click", () => {
+        textBlock.classList.toggle("collapsed");
+        textBlock.classList.toggle("expanded");
+        toggleTextBtn.textContent = textBlock.classList.contains("collapsed") ? "Читати більше" : "Згорнути текст";
+      });
+
+      const fetchBtn = document.getElementById("fetchUsersBtn");
+      const userList = document.getElementById("userList");
+      const userLimitInput = document.getElementById("userLimit");
+      const noMoreData = document.getElementById("noMoreData");
+
+      fetchBtn.addEventListener("click", async function () {
+        const limit = parseInt(userLimitInput.value);
+        if (!limit || limit <= 0) return alert("Введіть коректне число!");
+
+        const response = await fetch(`https://jsonplaceholder.typicode.com/users?_limit=${limit}&_page=${currentPage}`);
+        const users = await response.json();
+
+        if (users.length === 0) {
+          noMoreData.style.display = "block";
+          fetchBtn.disabled = true;
+          return;
+        }
+
+        users.forEach(user => {
+          const li = document.createElement("li");
+          li.textContent = `${user.name} (${user.email})`;
+          userList.appendChild(li);
+        });
+
+        currentPage++;
+        fetchBtn.textContent = "Fetch More Users";
+      });
+    });
+  </script>
+</body>
+</html>
